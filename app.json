@@ -4,6 +4,7 @@
     "slug": "ifield",
     "version": "1.0.0",
     "orientation": "portrait",
+    "owner": "gpaiva",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
