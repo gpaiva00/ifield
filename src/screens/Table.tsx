@@ -1,3 +1,4 @@
+import routesNames from '@common/routesNames'
 import { SMALL_ICON_SIZE } from '@common/sizes'
 import Button from '@components/Button'
 import DateBottomSheet from '@components/DateBottomSheet'
@@ -7,6 +8,7 @@ import MonthsBottomSheet from '@components/MonthsBottomSheet'
 import Title from '@components/Title'
 import UsersBottomSheet from '@components/UsersBottomSheet'
 import tw from '@lib/twrnc'
+import { saveTable } from '@repositories/Tables'
 import { getUsers as getUsersFromDB } from '@repositories/Users'
 import { TableDetailsProps, TableProps, TableType } from '@typings/Table'
 import { User } from '@typings/User'
@@ -34,6 +36,8 @@ export default function Table({ navigation, route }) {
   const [selectedDetailID, setSelectedDetailID] = useState(null)
   const [selectedUserID, setSelectedUserID] = useState(null)
   const [selectedDate, setSelectedDate] = useState(null)
+
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleOnSelectMonth = (month: string) => {
     const monthNumber = getMonthNumber(month)
@@ -149,6 +153,19 @@ export default function Table({ navigation, route }) {
       .join('')}`
 
     return text
+  }
+
+  const handleSaveTable = async () => {
+    try {
+    setIsLoading(true)
+     await saveTable(newTable)
+     navigation.navigate({ route: routesNames.HOME })
+    } catch (error) {
+      Alert.alert('Salvar tabela', 'Não foi possível salvar. Tente novamente.')
+      console.log(error)
+    }
+
+    setIsLoading(false)
   }
 
   const handleShareTable = async () => {
@@ -268,7 +285,7 @@ export default function Table({ navigation, route }) {
                         {detail.user.name}
                       </Text>
                     ) : (
-                      <Text style={tw`text-2xl font-bold text-zinc-300`}>
+                      <Text style={tw`text-2xl font-bold text-zinc-400`}>
                         Adicionar dirigente
                       </Text>
                     )}
@@ -280,8 +297,9 @@ export default function Table({ navigation, route }) {
         </ScrollView>
 
         <Button
-          text="Enviar por WhatsApp"
-          onPress={handleShareTable}
+          text="Salvar"
+          onPress={handleSaveTable}
+          isLoading={isLoading}
         />
       </View>
       {showMonthsBottomSheet && (

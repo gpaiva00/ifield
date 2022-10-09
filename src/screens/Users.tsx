@@ -38,9 +38,9 @@ export default function Users({ navigation }) {
         'Digite o nome do dirigente para continuar'
       )
       return
-    }
+    }    
 
-    const name = text.at(-1) === ',' ? text.slice(0, -1) : text
+    const name = text.slice(-1) === ',' ? text.slice(0, -1) : text
     const id = generateID()
     setUsers([...users, { id, name }])
     setUser('')
