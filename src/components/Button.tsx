@@ -4,7 +4,7 @@ import tw from '@lib/twrnc'
 
 interface ButtonProps {
   text?: string
-  onPress: () => void
+  onPress: (...args) => void
   icon?: JSX.Element
   isLoading?: boolean
   style?: string

@@ -27,6 +27,7 @@ import { debounce } from '@utils/debounce'
 
 import routesNames from '@common/routesNames'
 import tw from '@lib/twrnc'
+import { timeMask } from '@utils/timeMask'
 
 interface HourChangeProps {
   day: string
@@ -72,7 +73,7 @@ export default function HoursPerDay({ navigation, route }) {
     event,
     hourPerDayIndex,
   }: HourChangeProps) => {
-    const newHour = event.nativeEvent.text
+    let newHour = event.nativeEvent.text
 
     if (!newHour && hourPerDayIndex > 0) {
       setHoursPerDay(
@@ -80,6 +81,8 @@ export default function HoursPerDay({ navigation, route }) {
       )
       return
     }
+
+    newHour = timeMask(newHour)
 
     const newHoursPerDay = hoursPerDay.map((hourPerDay, index) => {
       if (hourPerDay.day === day && hourPerDayIndex === index) {
@@ -156,14 +159,14 @@ export default function HoursPerDay({ navigation, route }) {
   }, [])
 
   return (
-    <View style={tw`ios:mt-10 p-6`}>
-      <View style={tw`items-start justify-center`}>
+    <View style={tw`flex-1 ios:mt-10 p-6`}>
+      <View style={tw`items-start justify-center mb-10`}>
         <GoBackButton navigation={navigation} />
         <Title>Quais os horários?</Title>
       </View>
 
       <ScrollView
-        style={tw`w-full mt-10 h-[425px]`}
+        style={tw`flex-1`}
         showsVerticalScrollIndicator={false}>
         {selectedDays.map((day: WeekDays, index: number) => {
           return (
@@ -192,6 +195,7 @@ export default function HoursPerDay({ navigation, route }) {
                           placeholder="00:00"
                           keyboardType="numeric"
                           size="xs"
+                          returnKeyLabel="Pronto"
                           onChange={event =>
                             debounce(
                               handleHourChange({

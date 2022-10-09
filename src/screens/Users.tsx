@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { ScrollView, Text, View } from 'react-native'
+import { Alert, ScrollView, Text, View } from 'react-native'
 
 import Button from '@components/Button'
 import GoBackButton from '@components/GoBackButton'
@@ -13,7 +13,10 @@ import routesNames from '@common/routesNames'
 import { getUsers as getUsersFromDB, saveUsers } from '@repositories/Users'
 import { User } from '@typings/User'
 
+import { SMALL_ICON_SIZE } from '@common/sizes'
 import tw from '@lib/twrnc'
+import generateID from '@utils/generateID'
+import { X } from 'phosphor-react-native'
 
 export default function Users({ navigation }) {
   const [user, setUser] = useState('')
@@ -29,8 +32,17 @@ export default function Users({ navigation }) {
   }
 
   const handleAddUser = (text: string) => {
+    if (!text) {
+      Alert.alert(
+        'Adicionar dirigente',
+        'Digite o nome do dirigente para continuar'
+      )
+      return
+    }
+
     const name = text.at(-1) === ',' ? text.slice(0, -1) : text
-    setUsers([...users, { name }])
+    const id = generateID()
+    setUsers([...users, { id, name }])
     setUser('')
   }
 
@@ -63,13 +75,13 @@ export default function Users({ navigation }) {
   }, [])
 
   return (
-    <View style={tw`ios:mt-10 p-6`}>
-      <View style={tw`items-start justify-center`}>
+    <View style={tw`flex-1 ios:mt-10 p-6`}>
+      <View style={tw`items-start justify-center mb-10`}>
         <GoBackButton navigation={navigation} />
         <Title>Quem são os dirigentes?</Title>
       </View>
 
-      <View style={tw`w-full mt-10 h-96`}>
+      <View style={tw`flex-1 justify-center`}>
         <TextInput
           placeholder="Nome do dirigente"
           value={user}
@@ -79,6 +91,7 @@ export default function Users({ navigation }) {
           autoFocus
           autoCorrect={false}
           onSubmitEditing={() => handleAddUser(user)}
+          returnKeyLabel="Pronto"
         />
 
         {users.length > 0 && (
@@ -94,6 +107,12 @@ export default function Users({ navigation }) {
                   key={index}
                   text={user.name}
                   onPress={() => handleRemoveUser(index)}
+                  icon={
+                    <X
+                      size={SMALL_ICON_SIZE}
+                      color="#581c87"
+                    />
+                  }
                 />
               ))}
             </View>
@@ -104,7 +123,7 @@ export default function Users({ navigation }) {
           <View style={tw`items-center justify-center mt-20`}>
             <TextPlaceholder
               text={
-                'Para adicionar, digite o nome do dirigente e pressione vírgula.'
+                'Para adicionar, digite o nome do dirigente e pressione vírgula ou "Pronto".'
               }
             />
           </View>
@@ -114,7 +133,6 @@ export default function Users({ navigation }) {
         text="Salvar"
         onPress={handleSaveUsers}
         isLoading={isLoading}
-        // style={tw`bottom-6`}
       />
     </View>
   )

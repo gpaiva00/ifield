@@ -72,13 +72,13 @@ export default function Dates({ navigation }) {
   }, [])
 
   return (
-    <View style={tw`ios:mt-10 p-6`}>
+    <View style={tw`flex-1 ios:mt-10 p-6`}>
       <View style={tw`items-start justify-center`}>
         <GoBackButton navigation={navigation} />
         <Title>Quais dias terão consideração de campo?</Title>
       </View>
 
-      <View style={tw`w-full h-96 justify-center`}>
+      <View style={tw`flex-1 justify-center`}>
         <View style={tw`items-end justify-center`}>
           <TouchableOpacity
             onPress={handleSelectAll}

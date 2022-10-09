@@ -33,13 +33,13 @@ export default function ChooseTableType({ navigation }) {
   }
 
   return (
-    <View style={tw`ios:mt-10 p-6`}>
+    <View style={tw`flex-1 ios:mt-10 p-6`}>
       <View style={tw`items-start justify-center`}>
         <GoBackButton navigation={navigation} />
         <Title>Como gostaria de gerar a tabela?</Title>
       </View>
 
-      <View style={tw`w-full justify-center mt-10 h-96`}>
+      <View style={tw`flex-1 justify-center`}>
         <Button
           text="Manualmente"
           onPress={() => setSelectedType(TableType.MANUAL)}

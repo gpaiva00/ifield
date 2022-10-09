@@ -1,15 +1,14 @@
-import { MONTHS } from '@common/datesNames'
+import { WEEK_DAYS } from '@common/datesNames'
 import { getHoursPerDay } from '@repositories/Dates'
 import { getUsers } from '@repositories/Users'
 import { TableDetailsProps, TableProps, TableType } from '@typings/Table'
 import generateID from '@utils/generateID'
+import { CURRENT_MONTH_NAME } from '@utils/getCurrentMonth'
 
 const generateRandomTable = async (): Promise<TableProps> => {
-  const currentMonth = MONTHS[new Date().getMonth()]
-
   const table: TableProps = {
     id: generateID(),
-    month: currentMonth,
+    month: CURRENT_MONTH_NAME,
     year: new Date().getFullYear().toString(),
     type: TableType.RANDOM,
     details: [],
@@ -24,7 +23,8 @@ const generateRandomTable = async (): Promise<TableProps> => {
     const user = users[details.length % users.length]
     const date = new Date()
 
-    date.setDate(date.getDate() + details.length)
+    const weekDayIndex = WEEK_DAYS.indexOf(hourPerDay.day) + 1
+    date.setDate(date.getDate() + (weekDayIndex - date.getDay()))
 
     const detail: TableDetailsProps = {
       id: generateID(),
