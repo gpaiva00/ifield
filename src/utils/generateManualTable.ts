@@ -11,6 +11,7 @@ const generateManualTable = async (): Promise<TableProps> => {
     year: new Date().getFullYear().toString(),
     type: TableType.MANUAL,
     details: [],
+    createdAt: new Date().toISOString(),
   }
 
   const details: TableDetailsProps[] = []

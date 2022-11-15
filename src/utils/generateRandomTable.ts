@@ -12,6 +12,7 @@ const generateRandomTable = async (): Promise<TableProps> => {
     year: new Date().getFullYear().toString(),
     type: TableType.RANDOM,
     details: [],
+    createdAt: new Date().toISOString(),
   }
 
   const details: TableDetailsProps[] = []

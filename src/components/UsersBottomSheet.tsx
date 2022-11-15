@@ -4,7 +4,7 @@ import Pill from '@components/Pill'
 import Title from '@components/Title'
 import tw from '@lib/twrnc'
 import { User } from '@typings/User'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { ScrollView, View } from 'react-native'
 
 interface UsersBottomSheetProps {
@@ -25,6 +25,10 @@ export default function UsersBottomSheet({
   const handleSave = () => {
     onClose(selectedUserID)
   }
+
+  useEffect(() => {
+    setSelectedUserID(currentSelectedUserID)
+  }, [users])
 
   return (
     <CustomBottomSheet

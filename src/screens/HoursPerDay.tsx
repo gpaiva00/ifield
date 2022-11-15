@@ -7,7 +7,7 @@ import {
   ScrollView,
   Text,
   TextInputChangeEventData,
-  View,
+  View
 } from 'react-native'
 
 import Button from '@components/Button'
@@ -19,7 +19,7 @@ import { MEDIUM_ICON_SIZE } from '@common/sizes'
 
 import {
   getHoursPerDay as getHoursPerDayFromDB,
-  saveHoursPerDay,
+  saveHoursPerDay
 } from '@repositories/Dates'
 import { HoursPerDayProps } from '@typings/HoursPerDay'
 import { WeekDays } from '@typings/WeekDays'
@@ -42,18 +42,6 @@ export default function HoursPerDay({ navigation, route }) {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleAddHourField = ({ day }: { day: WeekDays }) => {
-    // const lastHour = hoursPerDay.find(
-    //   hourPerDay => hourPerDay.day === day && hourPerDay.hour === ''
-    // )
-
-    // if (lastHour) {
-    //   Alert.alert(
-    //     'Adicionar horário',
-    //     'Neste dia há um campo de horário vazio. Preencha-o antes de adicionar outro.'
-    //   )
-    //   return
-    // }
-
     const lastHourIndex = hoursPerDay
       .map(hourPerDay => hourPerDay.day)
       .lastIndexOf(day)

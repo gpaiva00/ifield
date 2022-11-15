@@ -20,7 +20,7 @@ export default function TextInput({
   return (
     <NativeTextInput
       style={tw.style(
-        'border border-zinc-500 rounded-lg px-2 w-full h-11',
+        'border border-zinc-500 bg-white rounded-lg px-2 w-full h-11',
         {
           'w-[65px]': size === 'xs',
           'w-1/2': size === 'sm',

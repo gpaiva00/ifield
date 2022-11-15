@@ -1,8 +1,9 @@
 import routesNames from '@common/routesNames'
-import { SMALL_ICON_SIZE } from '@common/sizes'
+import { DEFAULT_ICON_SIZE, SMALL_ICON_SIZE } from '@common/sizes'
 import Button from '@components/Button'
 import DateBottomSheet from '@components/DateBottomSheet'
 import Description from '@components/Description'
+import { Divider } from '@components/Divider'
 import GoBackButton from '@components/GoBackButton'
 import MonthsBottomSheet from '@components/MonthsBottomSheet'
 import Title from '@components/Title'
@@ -12,38 +13,41 @@ import { saveTable } from '@repositories/Tables'
 import { getUsers as getUsersFromDB } from '@repositories/Users'
 import { TableDetailsProps, TableProps, TableType } from '@typings/Table'
 import { User } from '@typings/User'
+import { stringToDate } from '@utils/dateParser'
 import { getMonthNumber } from '@utils/getCurrentMonth'
-import * as Linking from 'expo-linking'
-import { CalendarBlank, Clock } from 'phosphor-react-native'
-import React, { useEffect, useState } from 'react'
-import { Alert, ScrollView, Text, TouchableOpacity, View } from 'react-native'
+import { CalendarBlank, Clock, Export } from 'phosphor-react-native'
+import React, { useEffect, useRef, useState } from 'react'
+import { Alert, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native'
+import ViewShot from 'react-native-view-shot'
 
 interface ParamsProps {
   tableData: TableProps
-  tableType: TableType
 }
 
 export default function Table({ navigation, route }) {
-  const { tableData: table, tableType }: ParamsProps = route.params
+  const { tableData: table }: ParamsProps = route.params
 
   const [showMonthsBottomSheet, setShowMonthsBottomSheet] = useState(false)
   const [showUsersBottomSheet, setShowUsersBottomSheet] = useState(false)
   const [showDateBottomSheet, setShowDateBottomSheet] = useState(false)
+  const [showControls, setShowControls] = useState(true)
 
-  const [newTable, setNewTable] = useState({} as TableProps)
+  const [newTable, setNewTable] = useState(table)
   const [users, setUsers] = useState([] as User[])
 
   const [selectedDetailID, setSelectedDetailID] = useState(null)
   const [selectedUserID, setSelectedUserID] = useState(null)
-  const [selectedDate, setSelectedDate] = useState(null)
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString())
 
   const [isLoading, setIsLoading] = useState(false)
+
+  const viewShotRef = useRef(null)
 
   const handleOnSelectMonth = (month: string) => {
     const monthNumber = getMonthNumber(month)
 
     const newDetails = newTable.details.map(detail => {
-      const date = new Date(detail.date)
+      const date = stringToDate(detail.date)
       date.setMonth(monthNumber)
 
       return {
@@ -91,12 +95,27 @@ export default function Table({ navigation, route }) {
     setNewTable({ ...newTable, details: newDetails })
   }
 
+  const updateUsersWithTableDetails = (users: User[]) => {
+    const newUsers = users.map(user => {
+      const detail = newTable.details.find(detail => detail?.user?.id === user.id)
+
+      if (detail) {
+        user.detailID = detail.id
+      }
+
+      return user
+    })        
+
+    setUsers(newUsers)
+  }
+
+
   const handleOnMonthPress = () => {
     closeAllBottomSheets()
     setShowMonthsBottomSheet(true)
   }
 
-  const handleOnPressUser = ({
+  const handleOnUserPress = ({
     detailID,
     userID,
   }: {
@@ -110,13 +129,13 @@ export default function Table({ navigation, route }) {
   }
 
   const handleOnDatePress = (detail: TableDetailsProps) => {
-    closeAllBottomSheets()
-    setSelectedDetailID(detail.id)
+    closeAllBottomSheets()    
     setSelectedDate(detail.date)
+    setSelectedDetailID(detail.id)
     setShowDateBottomSheet(true)
   }
 
-  const handleOnSelectDate = (_, date: string) => {
+  const handleOnChooseDate = (_, date: string) => {
     setShowDateBottomSheet(false)
 
     if (!date) return
@@ -133,33 +152,21 @@ export default function Table({ navigation, route }) {
   }
 
   const getUsers = async () => {
-    const users = await getUsersFromDB()
-    setUsers(users)
-  }
-
-  const generateTextFromTable = () => {
-    const { month, details } = newTable
-
-    let text = `Mês: ${month} \n`
-
-    text += `${details
-      .map(
-        detail =>
-          `🗓️ ${detail.weekDay} ・ ${detail.date}
-          🙋‍♂️ ${detail.user.name}
-          ⏰ ${detail.hour}
-        `
-      )
-      .join('')}`
-
-    return text
+    try {
+      const users = await getUsersFromDB()
+      setUsers(users)
+      
+      if (newTable.type === TableType.MANUAL) updateUsersWithTableDetails(users)
+    } catch (error) {
+      console.error(error)
+    }
   }
 
   const handleSaveTable = async () => {
     try {
-    setIsLoading(true)
-     await saveTable(newTable)
-     navigation.navigate({ route: routesNames.HOME })
+      setIsLoading(true)
+      await saveTable(newTable)
+      navigation.navigate(routesNames.HOME, { reload: true })
     } catch (error) {
       Alert.alert('Salvar tabela', 'Não foi possível salvar. Tente novamente.')
       console.log(error)
@@ -170,19 +177,19 @@ export default function Table({ navigation, route }) {
 
   const handleShareTable = async () => {
     try {
-      const text = generateTextFromTable()
-
-      const whatsAppLink = `whatsapp://send?text=${text}`
-
-      const isSupported = await Linking.canOpenURL(whatsAppLink)
-
-      if (!isSupported) {
-        Alert.alert('Compartilhar tabela', 'Compartilhamento não disponível')
-        return
-      }
-
-      return Linking.openURL(whatsAppLink)
+      setShowControls(false)
+      viewShotRef.current.capture()
+        .then(url => {
+          setShowControls(true)
+          Share.share({ url })
+        })
+        .catch(error => {
+          setShowControls(true)
+          Alert.alert('Compartilhar tabela', 'Não foi possível compartilhar. Tente novamente.')
+          console.error(error)
+        })    
     } catch (error) {
+      setShowControls(true)
       Alert.alert('Compartilhar tabela', 'Não foi possível compartilhar')
       console.log(error)
     }
@@ -195,113 +202,124 @@ export default function Table({ navigation, route }) {
   }
 
   useEffect(() => {
-    setNewTable(table)
-
-    if (tableType === TableType.MANUAL) {
-      getUsers()
-    }
-  }, [table])
+    getUsers()
+  }, [])
 
   return (
     <>
-      <View style={tw`flex-1 ios:mt-10 p-6`}>
-        <View style={tw`items-start justify-center mb-4`}>
-          <GoBackButton navigation={navigation} />
-          <Description>Programação de campo</Description>
-          {tableType === TableType.RANDOM ? (
-            <Title style={tw`text-primary`}>{table.month}</Title>
-          ) : (
-            <TouchableOpacity onPress={handleOnMonthPress}>
-              <Title style={tw`text-primary`}>{newTable.month}</Title>
-            </TouchableOpacity>
-          )}
-        </View>
+      <ViewShot
+        ref={viewShotRef}
+        style={tw`flex-1 bg-background`}>
+        <View style={tw`flex-1 ios:mt-10 p-6`}>
+          <GoBackButton style={tw.style(!showControls && 'hidden')} navigation={navigation} />
+          <View style={tw`flex-row justify-between items-center mb-4`}>
+            <View style={tw`items-start justify-center`}>
+              <Description>
+                Programação de campo
+                {newTable.type === TableType.RANDOM && ' (aleatória)'}
+              </Description>
+              {newTable.type === TableType.RANDOM ? (
+                <Title style={tw`text-primary`}>{table.month}</Title>
+              ) : (
+                <TouchableOpacity onPress={handleOnMonthPress}>
+                  <Title style={tw`text-primary`}>{newTable.month}</Title>
+                </TouchableOpacity>
+              )}
+            </View>
 
-        <ScrollView
-          style={tw`flex-1`}
-          showsVerticalScrollIndicator={false}>
-          <View style={tw`pb-8`}>
-            {newTable?.details?.map(detail => (
-              <View
-                key={detail.id}
-                style={tw`mb-2`}>
-                <View style={tw`bg-zinc-300 h-[1px]`} />
+            <Button
+              icon={
+                <Export
+                  color="#9B6F9B"
+                  size={DEFAULT_ICON_SIZE}
+                />
+              }
+              onPress={handleShareTable}
+              variant="transparent"
+              style={tw.style(!showControls && 'hidden')}
+            />
+          </View>
+          <ScrollView
+            style={tw`flex-1`}
+            showsVerticalScrollIndicator={false}>
+            <View style={tw`pb-8`}>
+              {newTable?.details?.map(detail => (
+                <View
+                  key={detail.id}
+                  style={tw`mb-2`}>
+                  <Divider />
 
-                <View style={tw`flex-row items-center justify-between my-2`}>
-                  <View style={tw`flex-row items-center`}>
-                    <CalendarBlank
-                      size={SMALL_ICON_SIZE}
-                      color="#9B6F9B"
-                      style={tw`mr-1`}
-                      weight="bold"
-                    />
-                    <Description style={tw`text-base mr-1 font-semibold`}>
-                      {detail.weekDay}
-                    </Description>
-
-                    {tableType === TableType.RANDOM ? (
-                      <Description
-                        style={tw`text-base text-primary font-semibold`}>
-                        {detail.date}
+                  <View style={tw`flex-row items-center justify-between my-2`}>
+                    <View style={tw`flex-row items-center`}>
+                      <CalendarBlank
+                        size={SMALL_ICON_SIZE}
+                        color="#9B6F9B"
+                        style={tw`mr-1`}
+                        weight="bold"
+                      />
+                      <Description style={tw`text-base mr-1`}>
+                        {detail.weekDay}
                       </Description>
-                    ) : (
-                      <TouchableOpacity
-                        onPress={() => handleOnDatePress(detail)}>
-                        <Description
-                          style={tw`text-base text-primary font-semibold`}>
+
+                      {newTable.type === TableType.RANDOM ? (
+                        <Description style={tw`text-base text-primary font-semibold`}>
                           {detail.date}
                         </Description>
-                      </TouchableOpacity>
-                    )}
+                      ) : (
+                        <TouchableOpacity onPress={() => handleOnDatePress(detail)}>
+                          <Description style={tw`text-base text-primary font-semibold`}>
+                            {detail.date}
+                          </Description>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    <View style={tw`flex-row items-center`}>
+                      <Clock
+                        size={SMALL_ICON_SIZE}
+                        color="#9B6F9B"
+                        style={tw`mr-1`}
+                        weight="bold"
+                      />
+                      <Description style={tw`text-base`}>{detail.hour}</Description>
+                    </View>
                   </View>
 
-                  <View style={tw`flex-row items-center`}>
-                    <Clock
-                      size={SMALL_ICON_SIZE}
-                      color="#9B6F9B"
-                      style={tw`mr-1`}
-                      weight="bold"
-                    />
-                    <Description style={tw`text-base font-semibold`}>
-                      {detail.hour}
-                    </Description>
-                  </View>
+                  {newTable.type === TableType.RANDOM ? (
+                    <Text style={tw`text-2xl font-extrabold`}>{detail.user.name}</Text>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleOnUserPress({
+                          detailID: detail.id,
+                          userID: detail?.user?.id,
+                        })
+                      }>
+                      {detail?.user?.name ? (
+                        <Text style={tw`text-2xl font-extrabold`}>
+                          {detail.user.name}
+                        </Text>
+                      ) : (
+                        <Text style={tw`text-2xl font-bold text-zinc-400`}>
+                          Adicionar dirigente
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  )}
                 </View>
+              ))}
+            </View>
+          </ScrollView>
+         
+          <Button
+            text="Salvar"
+            onPress={handleSaveTable}
+            isLoading={isLoading}
+            style={tw.style(!showControls && 'hidden')}
+          />
+        </View>
+      </ViewShot>
 
-                {tableType === TableType.RANDOM ? (
-                  <Text style={tw`text-2xl font-extrabold`}>
-                    {detail.user.name}
-                  </Text>
-                ) : (
-                  <TouchableOpacity
-                    onPress={() =>
-                      handleOnPressUser({
-                        detailID: detail.id,
-                        userID: detail?.user?.id,
-                      })
-                    }>
-                    {detail?.user?.name ? (
-                      <Text style={tw`text-2xl font-extrabold`}>
-                        {detail.user.name}
-                      </Text>
-                    ) : (
-                      <Text style={tw`text-2xl font-bold text-zinc-400`}>
-                        Adicionar dirigente
-                      </Text>
-                    )}
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-          </View>
-        </ScrollView>
-
-        <Button
-          text="Salvar"
-          onPress={handleSaveTable}
-          isLoading={isLoading}
-        />
-      </View>
       {showMonthsBottomSheet && (
         <MonthsBottomSheet
           onClose={handleOnSelectMonth}
@@ -320,8 +338,7 @@ export default function Table({ navigation, route }) {
 
       {showDateBottomSheet && (
         <DateBottomSheet
-          onClose={handleOnSelectDate}
-          currentDetailID={selectedDetailID}
+          onClose={handleOnChooseDate}
           currentSelectedDate={selectedDate}
         />
       )}

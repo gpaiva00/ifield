@@ -106,6 +106,7 @@ export default function Users({ navigation }) {
                 <Pill
                   key={index}
                   text={user.name}
+                  variant="secondary"
                   onPress={() => handleRemoveUser(index)}
                   icon={
                     <X

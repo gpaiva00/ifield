@@ -8,7 +8,7 @@ interface ButtonProps {
   icon?: JSX.Element
   isLoading?: boolean
   style?: string
-  variant?: 'primary' | 'secondary' | 'transparent'
+  variant?: 'primary' | 'secondary' | 'transparent' | 'circle-primary'
 }
 
 export default function Button({
@@ -28,6 +28,7 @@ export default function Button({
           'bg-transparent': variant === 'transparent',
           'border border-primary': variant === 'secondary',
           'bg-primary': variant === 'primary',
+          'bg-primary rounded-full': variant === 'circle-primary',
         },
         style
       )}

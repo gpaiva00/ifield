@@ -6,28 +6,25 @@ import tw from '@lib/twrnc'
 import DateTimePicker, {
   DateTimePickerEvent,
 } from '@react-native-community/datetimepicker'
+import { stringToDate } from '@utils/dateParser'
 import React, { useState } from 'react'
 import { View } from 'react-native'
 
 interface DateBottomSheetProps {
   onClose: (event: DateTimePickerEvent, date: string) => void
-  currentDetailID: string
   currentSelectedDate: string
 }
 
 export default function DateBottomSheet({
   onClose,
-  currentDetailID,
   currentSelectedDate,
 }: DateBottomSheetProps) {
-  const [selectedDate, setSelectedDate] = useState(
-    new Date(new Date(currentSelectedDate).toLocaleDateString())
-  )
-
+  const [selectedDate, setSelectedDate] = useState(stringToDate(currentSelectedDate))
+    
   const handleOnClose = (event: DateTimePickerEvent, date: Date) => {
     setSelectedDate(date)
     onClose(event, date.toLocaleDateString())
-  }
+  }    
 
   return (
     <CustomBottomSheet

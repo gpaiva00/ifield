@@ -25,7 +25,6 @@ export default function ChooseTableType({ navigation }) {
 
       navigation.navigate(routesNames.TABLE, {
         tableData,
-        tableType: selectedType,
       })
     } catch (error) {}
 
