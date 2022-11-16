@@ -1,3 +1,5 @@
+import { format } from 'date-fns'
+
 /**
  * 
  * @param dateString
@@ -9,3 +11,5 @@ export const stringToDate = (dateString: string): Date => {
   date.setDate(date.getDate() + 1)
   return date
 }
+
+export const defaultDateFormat = (date: Date): string => format(date, 'dd/MM/yyyy')

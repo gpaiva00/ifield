@@ -1,6 +1,6 @@
 import Title from '@components/Title'
 import { useEffect, useState } from 'react'
-import { Alert, Text, TouchableOpacity, View } from 'react-native'
+import { Text, TouchableOpacity, View } from 'react-native'
 
 import Button from '@components/Button'
 import GoBackButton from '@components/GoBackButton'
@@ -11,9 +11,11 @@ import Checkbox from '@components/Checkbox'
 import tw from '@lib/twrnc'
 import {
   getWeekDays as getWeekDaysFromDB,
-  saveWeekDays,
+  saveWeekDays
 } from '@repositories/Dates'
 import orderSelectedDays from '@utils/orderSelectedDays'
+import Toast from 'react-native-root-toast'
+
 
 export default function Dates({ navigation }) {
   const [selectedDays, setSelectedDays] = useState<string[]>([])
@@ -23,7 +25,7 @@ export default function Dates({ navigation }) {
     setIsLoading(true)
     if (!selectedDays.length) {
       setIsLoading(false)
-      Alert.alert('Antes de avançar', 'Selecione pelo menos um dia da semana.')
+      Toast.show('Selecione pelo menos um dia da semana')
       return
     }
 
@@ -72,7 +74,7 @@ export default function Dates({ navigation }) {
   }, [])
 
   return (
-    <View style={tw`flex-1 ios:mt-10 p-6`}>
+    <View style={tw`flex-1 mt-10 p-6`}>
       <View style={tw`items-start justify-center`}>
         <GoBackButton navigation={navigation} />
         <Title>Quais dias terão consideração de campo?</Title>

@@ -14,6 +14,7 @@ import { wait } from '@utils/wait'
 import { PlusCircle } from 'phosphor-react-native'
 import React, { useEffect, useState } from 'react'
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, TouchableOpacity, View } from 'react-native'
+import Toast from 'react-native-root-toast'
 
 export default function Home({ navigation, route }) {
   const [isLoading, setIsLoading] = useState(false)
@@ -30,8 +31,7 @@ export default function Home({ navigation, route }) {
       if (!users.length) {
         setIsLoading(false)
 
-        return Alert.alert(
-          'Não há dirigentes cadastrados',
+        return Toast.show(
           'Adicione dirigentes para continuar'
         )
       }
@@ -39,8 +39,7 @@ export default function Home({ navigation, route }) {
       if (!weekDays.length || !hoursPerDay.length) {
         setIsLoading(false)
 
-        return Alert.alert(
-          'Não há dias ou horários cadastrados',
+        return Toast.show(
           'Adicione dias e horários para continuar'
         )
       }
@@ -107,12 +106,16 @@ export default function Home({ navigation, route }) {
   }
 
   useEffect(() => {
-    getTables()
+    const unsubscribe = navigation.addListener('focus', () => {
+      getTables()
+    })
+
+    return unsubscribe
   }, [])
 
   return (
     <>
-      <View style={tw`ios:mt-10 p-6`}>
+      <View style={tw`mt-10 p-6`}>
         <View style={tw`flex-row items-center justify-between`}>
           <Title>Início</Title>
           <TouchableOpacity onPress={handleAddTable}>

@@ -1,6 +1,7 @@
 import { WEEK_DAYS } from '@common/datesNames'
 import { getHoursPerDay } from '@repositories/Dates'
 import { TableDetailsProps, TableProps, TableType } from '@typings/Table'
+import { defaultDateFormat } from '@utils/dateParser'
 import generateID from '@utils/generateID'
 import { CURRENT_MONTH_NAME } from '@utils/getCurrentMonth'
 
@@ -20,13 +21,12 @@ const generateManualTable = async (): Promise<TableProps> => {
 
   for (const hourPerDay of hoursPerDay) {
     const date = new Date()
-
     const weekDayIndex = WEEK_DAYS.indexOf(hourPerDay.day) + 1
     date.setDate(date.getDate() + (weekDayIndex - date.getDay()))
 
     const detail: TableDetailsProps = {
       id: generateID(),
-      date: date.toLocaleDateString(),
+      date: defaultDateFormat(date),
       user: null,
       hour: hourPerDay.hour,
       weekDay: hourPerDay.day,

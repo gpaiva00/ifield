@@ -1,9 +1,7 @@
 import { Plus } from 'phosphor-react-native'
 import { useEffect, useState } from 'react'
 import {
-  ActivityIndicator,
-  Alert,
-  NativeSyntheticEvent,
+  ActivityIndicator, NativeSyntheticEvent,
   ScrollView,
   Text,
   TextInputChangeEventData,
@@ -28,6 +26,7 @@ import { debounce } from '@utils/debounce'
 import routesNames from '@common/routesNames'
 import tw from '@lib/twrnc'
 import { timeMask } from '@utils/timeMask'
+import Toast from 'react-native-root-toast'
 
 interface HourChangeProps {
   day: string
@@ -94,9 +93,8 @@ export default function HoursPerDay({ navigation, route }) {
       )
 
       if (hasEmptyHour) {
-        Alert.alert(
-          'Salvar horários',
-          'Há campos de horário vazios. Preencha-os antes de salvar.'
+        Toast.show(
+          'Há campos de horário vazios. Preencha-os antes de salvar'
         )
         setIsLoading(false)
 
@@ -147,7 +145,7 @@ export default function HoursPerDay({ navigation, route }) {
   }, [])
 
   return (
-    <View style={tw`flex-1 ios:mt-10 p-6`}>
+    <View style={tw`flex-1 mt-10 p-6`}>
       <View style={tw`items-start justify-center mb-10`}>
         <GoBackButton navigation={navigation} />
         <Title>Quais os horários?</Title>

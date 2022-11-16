@@ -9,15 +9,17 @@ import MonthsBottomSheet from '@components/MonthsBottomSheet'
 import Title from '@components/Title'
 import UsersBottomSheet from '@components/UsersBottomSheet'
 import tw from '@lib/twrnc'
+import { DateTimePickerAndroid, DateTimePickerEvent } from '@react-native-community/datetimepicker'
 import { saveTable } from '@repositories/Tables'
 import { getUsers as getUsersFromDB } from '@repositories/Users'
 import { TableDetailsProps, TableProps, TableType } from '@typings/Table'
 import { User } from '@typings/User'
-import { stringToDate } from '@utils/dateParser'
+import { defaultDateFormat, stringToDate } from '@utils/dateParser'
 import { getMonthNumber } from '@utils/getCurrentMonth'
 import { CalendarBlank, Clock, Export } from 'phosphor-react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import { Alert, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native'
+import { Platform, ScrollView, Share, Text, TouchableOpacity, View } from 'react-native'
+import Toast from 'react-native-root-toast'
 import ViewShot from 'react-native-view-shot'
 
 interface ParamsProps {
@@ -37,7 +39,7 @@ export default function Table({ navigation, route }) {
 
   const [selectedDetailID, setSelectedDetailID] = useState(null)
   const [selectedUserID, setSelectedUserID] = useState(null)
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toLocaleDateString())
+  const [selectedDate, setSelectedDate] = useState<string>(defaultDateFormat(new Date()))
 
   const [isLoading, setIsLoading] = useState(false)
 
@@ -49,10 +51,10 @@ export default function Table({ navigation, route }) {
     const newDetails = newTable.details.map(detail => {
       const date = stringToDate(detail.date)
       date.setMonth(monthNumber)
-
+      
       return {
         ...detail,
-        date: date.toLocaleDateString(),
+        date: defaultDateFormat(date)
       }
     })
 
@@ -128,10 +130,21 @@ export default function Table({ navigation, route }) {
     setShowUsersBottomSheet(true)
   }
 
-  const handleOnDatePress = (detail: TableDetailsProps) => {
+  const handleOnDatePress = (detail: TableDetailsProps) => {    
     closeAllBottomSheets()    
     setSelectedDate(detail.date)
     setSelectedDetailID(detail.id)
+    
+    if (Platform.OS === 'android') {
+      return DateTimePickerAndroid.open({
+        value: stringToDate(selectedDate),
+        onChange: (_: DateTimePickerEvent, date: Date) =>
+          handleOnChooseDate(null, defaultDateFormat(date)),
+        mode: 'date',
+        is24Hour: true,
+      })
+    }
+
     setShowDateBottomSheet(true)
   }
 
@@ -168,29 +181,29 @@ export default function Table({ navigation, route }) {
       await saveTable(newTable)
       navigation.navigate(routesNames.HOME, { reload: true })
     } catch (error) {
-      Alert.alert('Salvar tabela', 'Não foi possível salvar. Tente novamente.')
+      Toast.show('Não foi possível salvar. Tente novamente')
       console.log(error)
     }
 
     setIsLoading(false)
   }
-
+  // TODO: empty when try to share on Android (doesn't show "save image" option)
   const handleShareTable = async () => {
     try {
       setShowControls(false)
-      viewShotRef.current.capture()
-        .then(url => {
-          setShowControls(true)
-          Share.share({ url })
-        })
-        .catch(error => {
-          setShowControls(true)
-          Alert.alert('Compartilhar tabela', 'Não foi possível compartilhar. Tente novamente.')
-          console.error(error)
-        })    
+      const url = await viewShotRef.current.capture()
+      setShowControls(true)
+      const shareResult = await Share.share({ url })
+      
+      if (shareResult.action === Share.sharedAction) {
+        if (shareResult.activityType) {
+          Toast.show('Compartilhado com sucesso')
+        }
+      }
+       
     } catch (error) {
       setShowControls(true)
-      Alert.alert('Compartilhar tabela', 'Não foi possível compartilhar')
+      Toast.show('Não foi possível compartilhar. Tente novamente')
       console.log(error)
     }
   }
@@ -210,7 +223,7 @@ export default function Table({ navigation, route }) {
       <ViewShot
         ref={viewShotRef}
         style={tw`flex-1 bg-background`}>
-        <View style={tw`flex-1 ios:mt-10 p-6`}>
+        <View style={tw`flex-1 mt-10 p-6`}>
           <GoBackButton style={tw.style(!showControls && 'hidden')} navigation={navigation} />
           <View style={tw`flex-row justify-between items-center mb-4`}>
             <View style={tw`items-start justify-center`}>

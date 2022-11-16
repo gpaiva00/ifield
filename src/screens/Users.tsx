@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Alert, ScrollView, Text, View } from 'react-native'
+import { ScrollView, Text, View } from 'react-native'
 
 import Button from '@components/Button'
 import GoBackButton from '@components/GoBackButton'
@@ -17,6 +17,8 @@ import { SMALL_ICON_SIZE } from '@common/sizes'
 import tw from '@lib/twrnc'
 import generateID from '@utils/generateID'
 import { X } from 'phosphor-react-native'
+import Toast from 'react-native-root-toast'
+
 
 export default function Users({ navigation }) {
   const [user, setUser] = useState('')
@@ -33,8 +35,7 @@ export default function Users({ navigation }) {
 
   const handleAddUser = (text: string) => {
     if (!text) {
-      Alert.alert(
-        'Adicionar dirigente',
+      Toast.show(
         'Digite o nome do dirigente para continuar'
       )
       return
@@ -75,7 +76,7 @@ export default function Users({ navigation }) {
   }, [])
 
   return (
-    <View style={tw`flex-1 ios:mt-10 p-6`}>
+    <View style={tw`flex-1 mt-10 p-6`}>
       <View style={tw`items-start justify-center mb-10`}>
         <GoBackButton navigation={navigation} />
         <Title>Quem são os dirigentes?</Title>

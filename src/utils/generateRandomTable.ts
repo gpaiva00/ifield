@@ -2,6 +2,7 @@ import { WEEK_DAYS } from '@common/datesNames'
 import { getHoursPerDay } from '@repositories/Dates'
 import { getUsers } from '@repositories/Users'
 import { TableDetailsProps, TableProps, TableType } from '@typings/Table'
+import { defaultDateFormat } from '@utils/dateParser'
 import generateID from '@utils/generateID'
 import { CURRENT_MONTH_NAME } from '@utils/getCurrentMonth'
 
@@ -29,7 +30,7 @@ const generateRandomTable = async (): Promise<TableProps> => {
 
     const detail: TableDetailsProps = {
       id: generateID(),
-      date: date.toLocaleDateString(),
+      date: defaultDateFormat(date),
       user,
       hour: hourPerDay.hour,
       weekDay: hourPerDay.day,

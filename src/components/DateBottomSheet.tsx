@@ -4,9 +4,9 @@ import Description from '@components/Description'
 import Title from '@components/Title'
 import tw from '@lib/twrnc'
 import DateTimePicker, {
-  DateTimePickerEvent,
+  DateTimePickerEvent
 } from '@react-native-community/datetimepicker'
-import { stringToDate } from '@utils/dateParser'
+import { defaultDateFormat, stringToDate } from '@utils/dateParser'
 import React, { useState } from 'react'
 import { View } from 'react-native'
 
@@ -23,7 +23,7 @@ export default function DateBottomSheet({
     
   const handleOnClose = (event: DateTimePickerEvent, date: Date) => {
     setSelectedDate(date)
-    onClose(event, date.toLocaleDateString())
+    onClose(event, defaultDateFormat(date))
   }    
 
   return (

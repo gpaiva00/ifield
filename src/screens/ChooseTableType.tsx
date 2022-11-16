@@ -32,7 +32,7 @@ export default function ChooseTableType({ navigation }) {
   }
 
   return (
-    <View style={tw`flex-1 ios:mt-10 p-6`}>
+    <View style={tw`flex-1 mt-10 p-6`}>
       <View style={tw`items-start justify-center`}>
         <GoBackButton navigation={navigation} />
         <Title>Como gostaria de gerar a tabela?</Title>
